@@ -2,9 +2,14 @@ env:
   NIXPKGS_ALLOW_UNFREE: "1"
   NIX_PATH: "nixpkgs=https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz"
 
+on:
+  push:
+    branches:
+      - '*'
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  
     name: Build für amd64/arm64
     steps:
       - name: Checkout
