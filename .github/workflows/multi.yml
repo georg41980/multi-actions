@@ -24,7 +24,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.__YOUR__PERSONAL__GITHUB__TOKEN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
           
       - name: Build and push
         uses: docker/build-push-action@v4
