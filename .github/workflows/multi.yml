@@ -1,12 +1,11 @@
-#georg  Github workflow runner for Docker Multi-Arch using QEMU, Buildx for amd64 & arm64
-name: Docker Multi-Arch
-
-on: [ push ]
+env:
+  NIXPKGS_ALLOW_UNFREE: "1"
+  NIX_PATH: "nixpkgs=https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: build for amd64/arm64
+    name: Build für amd64/arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -14,22 +13,17 @@ jobs:
         # Setup hardware emulator using QEMU
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-        
-        # Setup Docker Buildx for multi-arch images
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64, linux/arm64
-          push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+
+      # Enable Nix Flakes
+      - name: Enable Nix Flakes
+        run: |
+          echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+          systemctl restart nix-daemon
+
+      # Build for ARM64
+      - name: Build for ARM64
+        run: nix build --experimental-features 'nix-command flakes' nixpkgs#pkgsCross.aarch64-linux
+
+      # Build for Windows
+      - name: Build for Windows
+        run: nix build --experimental-features 'nix-command flakes' nixpkgs#pkgsCross.x86_64-windows
